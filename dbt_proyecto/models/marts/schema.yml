@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: mart_resumen_crypto
+    description: "Tabla analítica final que consolida las métricas de dominancia, liquidez y volatilidad del ecosistema cripto."
+    columns:
+      - name: crypto_id
+        description: "Identificador único de la criptomoneda."
+        tests:
+          - unique
+          - not_null
+
+      - name: ranking_mercado
+        description: "Posición de la moneda en el mercado según su capitalización."
+        tests:
+          - not_null
+
+      - name: comportamiento_mercado
+        description: "Sentimiento diario basado en la volatilidad del precio."
+        tests:
+          - accepted_values:
+              values: ['🚀 Alcista (Bullish)', '⚖️ Estable', '📉 Bajista (Bearish)']
+              quote: true
+              description: "Monitorea el sentimiento del mercado sin bloquear el pipeline."

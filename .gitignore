@@ -1,0 +1,8 @@
+.env
+dbt_proyecto/target/
+dbt_proyecto/dbt_packages/
+dbt_proyecto/logs/
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store

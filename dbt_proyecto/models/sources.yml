@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: coingecko_raw           # El alias que usaremos en el SQL
+    schema: public                # El esquema real de Postgres donde Python metió los datos
+    description: "Datos crudos del mercado de criptomonedas extraídos directamente desde la API pública de CoinGecko."
+    tables:
+      - name: raw_crypto          # La tabla física exacta que creó Python
+        description: "Historial diario de precios, capitalización de mercado y volúmenes de las 50 principales monedas."
+        loaded_at_field: extracted_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}

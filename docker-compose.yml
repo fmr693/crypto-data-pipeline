@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: contenedor_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  dbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: contenedor_dbeaver
+    restart: always
+    ports:
+      - "8978:8978"
+    volumes:
+      - dbeaver_data:/opt/cloudbeaver/workspace
+    depends_on:
+      - postgres
+
+  ingestor:
+    build: ./ingestor
+    container_name: contenedor_ingestor
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:1.9.0
+    container_name: contenedor_dbt
+    volumes:
+      - ./dbt_proyecto:/usr/app
+    environment:
+      - DBT_PROFILES_DIR=/usr/app
+    working_dir: /usr/app
+    depends_on:
+      - postgres
+
+  airflow:
+    image: apache/airflow:2.9.1-python3.11
+    container_name: contenedor_airflow
+    restart: always
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./dbt_proyecto:/opt/airflow/dbt_proyecto
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - _PIP_ADDITIONAL_REQUIREMENTS=dbt-postgres faker psycopg2-binary
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DBT_PROFILES_DIR=/opt/airflow/dbt_proyecto
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db init &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
+      (airflow webserver & airflow scheduler)"
+    depends_on:
+      - postgres
+
+  metabase:
+    image: metabase/metabase:v0.49.3
+    container_name: contenedor_metabase
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  superset:
+    image: apache/superset:3.1.1
+    container_name: contenedor_superset
+    ports:
+      - "8088:8088"
+    user: "root"
+    environment:
+      - SUPERSET_SECRET_KEY=clave_secreta_academica_12345
+    command: >
+      bash -c "
+      superset db upgrade &&
+      superset fab create-admin --username admin --firstname Estudiante --lastname Datos --email admin@ejemplo.com --password admin &&
+      superset init &&
+      superset run -p 8088 -h 0.0.0.0 --with-threads
+      "
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  dbeaver_data:

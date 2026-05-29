@@ -1,0 +1,11 @@
+name: 'mi_proyecto_dbt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'mi_perfil_postgres'
+
+model-paths: ["models"]
+
+models:
+  mi_proyecto_dbt:
+    +materialized: table
