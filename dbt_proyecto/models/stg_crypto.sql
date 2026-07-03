@@ -9,4 +9,4 @@ select
     ath,
     ath_change_percentage,
     extracted_at
-from raw_crypto
+from {{ source('coingecko_raw', 'raw_crypto') }}

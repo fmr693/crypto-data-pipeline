@@ -22,7 +22,7 @@ with DAG(
     # Tarea 1: Descargar los datos frescos de la API
     ingesta_datos = BashOperator(
         task_id='ingestar_desde_coingecko',
-        bash_command='python /opt/airflow/ingestor.py'
+        bash_command='python /opt/airflow/scripts/ingestor.py'
     )
 
     # Tarea 2: Compilar y refrescar las tablas en dbt

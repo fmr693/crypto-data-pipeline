@@ -2,23 +2,30 @@ version: 2
 
 models:
   - name: mart_resumen_crypto
-    description: "Tabla analítica final que consolida las métricas de dominancia, liquidez y volatilidad del ecosistema cripto."
+    description: "Tabla analítica final que consolida las métricas de dominancia, liquidez y volatilidad del ecosistema cripto, snapshot a snapshot."
     columns:
-      - name: crypto_id
-        description: "Identificador único de la criptomoneda."
+      - name: id
+        description: "Identificador de la criptomoneda. Se repite en cada snapshot: la unicidad real es la pareja (id, extracted_at)."
         tests:
-          - unique
           - not_null
 
-      - name: ranking_mercado
-        description: "Posición de la moneda en el mercado según su capitalización."
+      - name: extracted_at
+        description: "Momento exacto del snapshot descargado de la API."
+        tests:
+          - not_null
+
+      - name: ranking_liquidez
+        description: "Posición de la moneda dentro de su snapshot según capitalización de mercado."
+        tests:
+          - not_null
+
+      - name: market_share_global
+        description: "Porcentaje de dominancia sobre la capitalización total del snapshot."
         tests:
           - not_null
 
       - name: comportamiento_mercado
-        description: "Sentimiento diario basado en la volatilidad del precio."
+        description: "Sentimiento de mercado según la variación de precio en 24h."
         tests:
           - accepted_values:
-              values: ['🚀 Alcista (Bullish)', '⚖️ Estable', '📉 Bajista (Bearish)']
-              quote: true
-              description: "Monitorea el sentimiento del mercado sin bloquear el pipeline."
+              values: ['Alcista', 'Bajista', 'Estable']
